@@ -1,0 +1,60 @@
+# The following files and folders should be ignored by Cursor's indexing and agent tools.
+# This list strictly follows the structure and governance rules from `.cursorrules` and `.agents/folders.mdc`.
+
+# Node and Python environments
+node_modules/
+.env
+.venv/
+__pycache__/
+
+# System and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Logs and temporary output
+*.log
+*.tmp
+.log/
+tmp/
+.cache/
+.nox/
+.coverage
+
+# User and tool lock/config
+*~ 
+*.bak
+*.lock
+
+# Build and distribution folders
+dist/
+build/
+out/
+.eggs/
+.wheel/
+*.egg-info/
+.mypy_cache/
+
+# Test/coverage/CI artifacts
+coverage.xml
+htmlcov/
+pytest_cache/
+*.spec
+test-results/
+
+# Do not index runtime artifacts, credentials, or local state
+secrets.*
+private.*
+.vscode/
+.idea/
+*.iml
+
+# Ignore agent operations logs and issues—these live in their own folders per .agents/folders.mdc:
+integration/logs/
+integration/issues/
+
+# Ignore documentation site/node output
+docs/.vuepress/dist/
+docs/node_modules/
+

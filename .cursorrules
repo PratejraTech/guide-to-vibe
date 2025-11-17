@@ -1,0 +1,233 @@
+# .cursorrules — Canonical Repository & Agent Governance
+# Project: PROJECT_NAME
+# Purpose:
+# - Enforce consistent, production-grade development with Cursor 2.0 and OpenCode.
+# - Treat the .agents folder as the central “Guide to Vibe” playbook library.
+# - Keep all work aligned with the attached playbook prompts and MDC metadata.
+
+──────────────────────────────────────────────────────────────────────────────
+1. GLOBAL OPERATING PRINCIPLES
+──────────────────────────────────────────────────────────────────────────────
+
+1.1 Read Before Acting  
+- Always read this `.cursorrules` file in full before starting any task.  
+- Before making structural or architectural decisions, also read:  
+  - `.agents/AGENTS.md` (operating spec for all agents)  
+  - `.agents/folders.mdc` (canonical folder structure, once created)  
+  - `.agents/backend.mdc`, `.agents/frontend.mdc`, `.agents/integration.mdc`
+    (module metadata once created)
+
+1.2 Use Playbook Prompts, Do Not Rewrite Them  
+- The attached playbook prompt files are canonical guides, not mutable tasks:
+  - `01 - Draft Plan.md`   → Draft Planning Playbook  
+  - `02 - Folder Structure.md`   → Folder Structure Playbook  
+  - `03 - Product Requirements Document.md`   → PRD Playbook  
+  - `04 - Architecture Document.md`           → Architecture Playbook  
+  - `05 - Backend Plan.md`                    → Backend Plan Playbook  
+  - `06 - Frontend Plan.md`                   → Frontend Plan Playbook  
+  - `07 - Integration.md`                     → Integration Playbook  
+- Treat these as **read-only templates** and **pattern references**.  
+- Do NOT edit their intent, structure, or instructions unless explicitly requested by the human developer.  
+- When generating new project-specific documents (e.g. PRD, architecture, backend plan), follow these playbook prompts closely and adapt via variable placeholders (PROJECT_NAME, DOMAIN_DESCRIPTION, etc.).
+
+1.3 Single Source of Truth  
+- For repo structure: `.agents/folders.mdc` is the single source of truth.  
+- For agent roles and coordination: `.agents/AGENTS.md` is the single source of truth.  
+- For backend and frontend module-level metadata: `.agents/backend.mdc` and `.agents/frontend.mdc` are the single sources of truth.  
+- Never introduce conflicting structures or roles outside these documents.
+
+1.4 Tests Are Mandatory  
+- Every functional change must be accompanied by appropriate tests:
+  - Backend: unit and integration tests under the designated `tests/` folders.  
+  - Frontend: component, integration, or end-to-end tests, as per frontend plan.  
+- If you add or update a feature and there is no test coverage for it, create or extend tests as part of the same change.
+
+──────────────────────────────────────────────────────────────────────────────
+2. DIRECTORY & FILE GOVERNANCE
+──────────────────────────────────────────────────────────────────────────────
+
+2.1 Respect the Defined Folder Structure  
+- Follow the folder structure defined in the Folder Structure Playbook (`02 - Folder Structure.md`) and concretised in `.agents/folders.mdc` (once created).  
+- Do NOT create new top-level folders or reorganise existing ones unless:
+  - The change is explicitly requested by the human developer, **and**
+  - `.agents/folders.mdc` is updated accordingly as part of the same change.
+
+2.2 .agents Folder — Guide Library  
+- All guide and governance documents MUST live under a dedicated `.agents/` folder, for example:
+  - `.agents/01-draft-plan.mdc`           (based on `01 - Draft Plan.md`)  
+  - `.agents/02-folder-structure.mdc`     (based on `02 - Folder Structure.md`)  
+  - `.agents/03-prd.mdc`                  (based on `03 - Product Requirements Document.md`)  
+  - `.agents/04-architecture.mdc`         (based on `04 - Architecture Document.md`)  
+  - `.agents/05-backend-plan.mdc`         (based on `05 - Backend Plan.md`)  
+  - `.agents/06-frontend-plan.mdc`        (based on `06 - Frontend Plan.md`)  
+  - `.agents/07-integration.mdc`          (based on `07 - Integration.md`)  
+  - `.agents/AGENTS.md`                   (canonical agent registry & roles)  
+  - `.agents/backend.mdc`                 (backend module metadata)  
+  - `.agents/frontend.mdc`                (frontend module metadata)  
+  - `.agents/integration.mdc`             (integration module metadata)  
+- If the playbook prompt files currently live at repo root, treat them as **canonical sources** to be mirrored into `.agents/` as MDC-style guides. Do NOT move or rename them without an explicit instruction from the human developer.
+
+2.3 MDC Files — YAML Front Matter + Markdown Body  
+- All `*.mdc` files MUST follow this pattern:
+  - YAML front matter at the top with machine-readable metadata (module, owner, language, etc.).  
+  - Markdown body with human-readable guidance, phases, and notes.  
+- Do NOT remove, corrupt, or partially edit YAML front matter.  
+- When updating MDC files, keep cross-references up to date (e.g., to PRD, architecture, backend/frontend plans).
+
+2.4 No Ad-Hoc Hidden Files  
+- Do NOT introduce hidden config files (e.g. `.tmp`, `.backup`, `.old`) without explicit instruction.  
+- Use Git branches and commits for experiment paths instead of cluttering the repo structure.
+
+──────────────────────────────────────────────────────────────────────────────
+3. AGENT BEHAVIOUR & ROLE ALIGNMENT
+──────────────────────────────────────────────────────────────────────────────
+
+3.1 Follow AGENTS.md  
+- Before doing multi-file or multi-phase work, read `.agents/AGENTS.md`.  
+- Obey role boundaries defined there (e.g., BACKEND_AGENT, FRONTEND_AGENT, INTEGRATION_AGENT, QA_AGENT).  
+- When acting as a particular agent role, only perform tasks that fall within that role’s responsibilities.
+
+3.2 Respect Phase-Based Work  
+- Many playbook prompts define **phased work** (e.g., 4 phases for backend and frontend).  
+- Always:
+  - Identify which phase you are in.  
+  - Complete that phase fully (including docs and tests) before moving to the next.  
+  - Update relevant MDC metadata to reflect phase completion and any open issues.
+
+3.3 No Cross-Cutting Modifications Without Context  
+- Do NOT modify:
+  - Backend and frontend simultaneously  
+  - Architecture and PRD simultaneously  
+  unless:
+  - You have consulted the relevant playbook prompts in `.agents/`, and  
+  - You log the intent and changes in the appropriate MDC and/or documentation files.
+
+3.4 Documentation Updates Are Not Optional  
+- Any structural, architectural, or data-model change MUST be reflected in:
+  - PRD (if it impacts scope/features)  
+  - Architecture document (if it impacts system design or dependencies)  
+  - Backend/Frontend MDC (if it impacts implementation details)  
+- Keep the playbook-derived documents and actual implementation in sync.
+
+──────────────────────────────────────────────────────────────────────────────
+4. PLAYBOOK PROMPTS — USAGE RULES
+──────────────────────────────────────────────────────────────────────────────
+
+4.1 Draft Plan Playbook (`01 - Draft Plan.md`)  
+- Use this when:
+  - Initiating a new project or major module.  
+  - Replanning a significant refactor.  
+- Do NOT embed low-level code details here. This is for phases, milestones, and sequencing.  
+- Ensure the resulting draft plan explicitly references:
+  - Folder structure decisions  
+  - PRD ownership  
+  - Architecture and implementation phases.
+
+4.2 Folder Structure Playbook (`02 - Folder Structure.md`)  
+- Use this as the only reference for designing or adjusting the repo structure.  
+- All proposed folder changes must:
+  - Be compatible with agent roles in `.agents/AGENTS.md`.  
+  - Indicate where backend, frontend, tests, docs, and agent artefacts live.  
+- Do NOT create folder structures that deviate from this playbook without updating `.agents/folders.mdc` and obtaining explicit human approval.
+
+4.3 PRD Playbook (`03 - Product Requirements Document.md`)  
+- All feature work must trace back to a PRD section generated or updated per this playbook.  
+- When adding or changing behaviour, update the PRD accordingly:
+  - Executive Summary  
+  - Scope & Objectives  
+  - Feature breakdowns and acceptance criteria  
+- Do NOT implement features whose rationale is absent from the PRD.
+
+4.4 Architecture Playbook (`04 - Architecture Document.md`)  
+- Apply this playbook to maintain a living architecture spec:
+  - High-level system overview  
+  - Component and integration diagrams (described textually)  
+  - Data flow and observability points  
+- When you modify data models, services, or integration flows, update the architecture document.
+
+4.5 Backend Plan Playbook (`05 - Backend Plan.md`)  
+- Always design backend changes from the **data model first**:
+  - Entities, relationships, constraints  
+  - Mapping to storage and APIs  
+- Use the phases defined in this playbook for backend implementation (scaffold → core APIs → auth/validation → integrations → observability/tests).
+
+4.6 Frontend Plan Playbook (`06 - Frontend Plan.md`)  
+- Use this to structure:
+  - UI architecture (routing, layout, state management)  
+  - Component hierarchy and design system integration  
+  - API consumption patterns and error states  
+- Follow the defined phases when building or refactoring frontend features.
+
+4.7 Integration Playbook (`07 - Integration.md`)  
+- Use this when:
+  - Wiring backend + frontend  
+  - Integrating external services or agent networks  
+  - Designing end-to-end tests and runbooks  
+- All integration flows must have:
+  - Clear preconditions and postconditions  
+  - Logged observability points  
+  - Test coverage aligned with the integration phases described.
+
+──────────────────────────────────────────────────────────────────────────────
+5. CONSISTENCY, TRACEABILITY & HANDOFF
+──────────────────────────────────────────────────────────────────────────────
+
+5.1 Keep Documents Synchronized  
+- Whenever you:
+  - Change a data model  
+  - Add a feature  
+  - Introduce a new integration  
+  you MUST:
+  - Update PRD (03), Architecture (04), Backend/Frontend plans (05/06), and Integration plan (07) **as applicable**.  
+- Do NOT leave “stale” design documents behind implementation.
+
+5.2 Commit Hygiene  
+- Group related changes together:
+  - Code + tests + MDC metadata + relevant documentation updates.  
+- Avoid commit messages like “misc changes” or “fix stuff”. Prefer descriptive messages referencing:
+  - Phase  
+  - Module  
+  - Document(s) touched.
+
+5.3 Handoff Readiness  
+- At any point, another agent or human should be able to:
+  - Read `.agents/AGENTS.md`  
+  - Read the PRD and Architecture  
+  - Read backend/frontend MDCs  
+  and immediately understand:
+  - What phase the project is in  
+  - What remains to be done  
+  - How to safely extend or maintain the system.
+
+──────────────────────────────────────────────────────────────────────────────
+6. PROHIBITED & RESTRICTED ACTIONS
+──────────────────────────────────────────────────────────────────────────────
+
+6.1 Do NOT:  
+- Do NOT delete or overwrite any of the playbook prompts (`01`–`07`) without explicit human instruction.  
+- Do NOT restructure the repository root or add new top-level domains outside the guidance of `.agents/folders.mdc`.  
+- Do NOT introduce new agent roles without:
+  - Updating `.agents/AGENTS.md`  
+  - Updating any affected MDC files  
+  - Explaining the rationale in documentation.
+
+6.2 Avoid “Spec Drift”  
+- Do NOT rely on memory alone; always re-open the relevant playbook prompt and MDC when making changes.  
+- Do NOT implement speculative features not grounded in the PRD/Architecture.
+
+──────────────────────────────────────────────────────────────────────────────
+7. QUICK CHECKLIST BEFORE MERGING
+──────────────────────────────────────────────────────────────────────────────
+
+Before a change is considered complete:
+
+[ ] Have you read `.cursorrules` and the relevant `.agents` documents?  
+[ ] Are the changes aligned with the appropriate playbook prompt(s) (01–07)?  
+[ ] Is the folder structure still compliant with `.agents/folders.mdc`?  
+[ ] Are PRD and Architecture updated when necessary?  
+[ ] Are backend/frontend MDC files updated to reflect new or changed behaviour?  
+[ ] Are there tests for any new or changed functionality?  
+[ ] Does the change respect agent roles and phase boundaries as defined in `.agents/AGENTS.md`?  
+[ ] Is the change clearly described in commit messages and, if relevant, in changelog/docs?
+
+If any answer is “no”, fix that before proceeding.
