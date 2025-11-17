@@ -1,0 +1,237 @@
+---
+module: testing
+owner: qa-agent
+type: process-spec
+version: 1.0.0
+structure: refer-to-folders.mdc
+related_documents:
+  - .cursorrules
+  - .agents/folders.mdc
+  - .agents/AGENTS.md
+  - .agents/backend.mdc
+  - .agents/frontend.mdc
+  - .agents/integration.mdc
+  - .agents/refactor.mdc
+  - docs/product/prd.md
+  - docs/architecture/system-architecture.md
+  - docs/architecture/backend-architecture.md
+  - docs/architecture/frontend-architecture.md
+  - docs/architecture/integration-architecture.md
+---
+
+# testing.mdc — Canonical Testing & QA Protocol
+
+> This document defines **how tests must be organised and written** for this repo.  
+> All agents MUST follow this when creating, editing, or running tests.
+
+Testing is **mandatory** for all functional work and refactors.  
+No feature or refactor is “done” without appropriate tests.
+
+---
+
+## 1. Testing Principles
+
+1. **Tests First / Early**
+   - For new behaviour, define test cases as early as possible.
+   - For refactors, ensure the current behaviour is captured in tests before structural changes.
+
+2. **Behaviour Over Implementation**
+   - Tests should encode *observable behaviour* and *invariants*, not internal implementation details.
+   - Refactors should not require rewriting tests unless contracts or invariants change.
+
+3. **Hierarchy of Tests**
+   - **Unit tests** for pure logic and small components.
+   - **Integration tests** for module boundaries (API endpoints, services, data stores).
+   - **E2E tests** for cross-system flows (frontend ↔ backend ↔ integrations).
+
+4. **Consistency with PRD & Architecture**
+   - Every critical user flow and major feature in the PRD should have at least one E2E or high-level integration test.
+   - Architecture docs should reflect what is actually testable and how.
+
+---
+
+## 2. Test Layout (Derived from `folders.mdc`)
+
+> **Note:** The *exact* folder paths are defined in `.agents/folders.mdc`.  
+> This section only describes **roles**, not structure details. When in doubt,  
+> refer to `folders.mdc` and `.cursorrules`.
+
+- **Backend tests**
+  - Live under the backend testing tree as defined in `folders.mdc`.
+  - Cover: domain logic, repositories, services, API endpoints, background jobs.
+
+- **Frontend tests**
+  - Live under the frontend testing tree as defined in `folders.mdc`.
+  - Cover: components, hooks, pages, routing, client-side behaviour.
+
+- **Integration / E2E tests**
+  - Live in the integration/E2E testing area defined in `folders.mdc` (often:
+    - `backend/tests/integration/` for backend-centric integration
+    - `frontend/tests/e2e/` for full browser-level E2E
+    - or a dedicated integration root if defined in the structure spec).
+
+No agent may introduce new test roots outside what `folders.mdc` allows.
+
+---
+
+## 3. Test Types & Responsibilities
+
+### 3.1 Backend Tests
+
+**Responsible agent:** `backend-agent` (with support from `qa-agent`)
+
+**Scope:**
+
+- Domain models and invariants
+- Data access: repositories, ORM, queries
+- Service-level orchestration
+- HTTP API endpoint behaviour (status codes, payloads, validation errors)
+- Background workers / jobs
+
+**Expectations:**
+
+- **Unit tests:** small, pure logic functions and domain behaviours.
+- **Integration tests:** API endpoints with in-memory or test DB.
+- **Contract tests:** stable request/response shapes for frontend & external consumers.
+
+---
+
+### 3.2 Frontend Tests
+
+**Responsible agent:** `frontend-agent` (with support from `qa-agent`)
+
+**Scope:**
+
+- Components (bare and connected)
+- Pages/routes and view-level behaviour
+- Hooks and client-side state
+- API client integration (happy path + error states)
+
+**Expectations:**
+
+- **Unit tests:** components and hooks with mocked dependencies.
+- **Integration tests:** page-level tests (routing, nested components).
+- **E2E tests (browser):** core flows using tools like Playwright / Cypress, as defined in the frontend plan.
+
+---
+
+### 3.3 Integration & E2E Tests
+
+**Responsible agent:** `integration-agent` + `qa-agent`  
+**Collaborators:** `backend-agent`, `frontend-agent`
+
+**Scope:**
+
+- Cross-layer flows defined in PRD and architecture:
+  - User journeys
+  - Data flows through backend, queues, and frontend
+- Agent network / external services integration
+
+**Expectations:**
+
+- E2E tests should follow the phases defined in `.agents/integration.mdc`.
+- Where possible, use realistic but non-production data.
+- Tests must be stable and deterministic (avoid flakiness via timing hacks).
+
+---
+
+## 4. Testing Phases (Per Feature / Change)
+
+For each substantial change (feature, refactor, or integration), agents MUST follow:
+
+### Phase 1 — Test Plan
+
+Before or as you start implementation:
+
+1. Identify affected PRD sections and architecture components.
+2. Define:
+   - What behaviours must be covered.
+   - Which test types are required (unit, integration, E2E).
+3. Record a brief test plan (e.g. in:
+   - `docs/product/prd.md` under the relevant feature section, or
+   - a short inline doc such as `docs/product/test-notes.md`).
+
+### Phase 2 — Guardrails
+
+For refactors or touching existing behaviour:
+
+1. Ensure there are tests capturing current behaviour.
+2. If missing, create them before major structural changes.
+3. Run tests and confirm a clean baseline.
+
+### Phase 3 — Implementation & Test Writing
+
+1. Implement the change in small steps.
+2. Add or update tests in parallel:
+   - Backend: update unit/integration where the logic changed.
+   - Frontend: update component/page tests for new UI behaviour.
+   - Integration: adjust E2E/contract tests when API or flow changed (but only if *intended*).
+
+### Phase 4 — Consolidation & CI
+
+1. Run:
+   - Backend test suite
+   - Frontend test suite
+   - Integration/E2E suite (or at least smoke tests)  
+2. Run `python scripts/check_consistency.py` to ensure:
+   - MDCs and structure are still aligned
+   - No missing governance files
+3. Fix all failures before merge.
+
+---
+
+## 5. Expectations for Agents
+
+### 5.1 For Backend Agent
+
+- Do NOT ship any new endpoints without:
+  - Unit tests for critical logic.
+  - Integration tests for endpoints with at least:
+    - Happy path
+    - Validation error
+    - Failure path (e.g. DB error mocked or simulated)
+
+- Keep tests close to the code they cover, following the conventions in `folders.mdc`.
+
+### 5.2 For Frontend Agent
+
+- Every significant UI component or page must have:
+  - At least one rendering test.
+  - Tests verifying behaviour of core interactions.
+- Do NOT rely solely on manual QA for flows that can be automated.
+
+### 5.3 For Integration Agent
+
+- For a new end-to-end flow:
+  - Define at least one E2E test case.
+  - Ensure backend and frontend contract tests match (request/response shapes, error handling).
+- Failure funnels and error paths should be covered where critical to the product.
+
+---
+
+## 6. Refactors & Testing (Link to `refactor.mdc`)
+
+When performing refactors (see `.agents/refactor.mdc`):
+
+1. Tests **must** be green before starting.
+2. If tests do not exist, they must be created first.
+3. After refactor, all tests must still pass:
+   - If behaviour changes, update PRD and treat it as feature change.
+4. Record refactor-related test notes in `docs/architecture/refactor-log.md` (if present).
+
+---
+
+## 7. Quick Checklist Before Merging Any Change
+
+Before merging any change (feature, bugfix, refactor, integration):
+
+- [ ] Have you identified which tests should exist for this change?
+- [ ] Have you written or updated the relevant unit tests?
+- [ ] Have you written or updated the integration tests?
+- [ ] If it’s a cross-layer flow: have you updated E2E tests?
+- [ ] Does the testing layout still conform to `.agents/folders.mdc`?
+- [ ] Have you run the full relevant test suite(s)?
+- [ ] Have you run `scripts/check_consistency.py` and fixed all issues?
+- [ ] If behaviour changed, have you updated PRD and Architecture docs?
+
+If any of these are “no”, the change is **not ready** to merge.

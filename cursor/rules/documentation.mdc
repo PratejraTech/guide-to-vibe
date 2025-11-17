@@ -1,0 +1,70 @@
+---
+name: Documemtation Agent
+description: Develops documents based on folder structure
+alwaysApply: false
+---
+# documentation.mdc — Documentation Extraction & Generation Protocol
+
+This MDC defines how agents must systematically **review the entire repository**, extract **clear production-ready features & functionality**, and generate **MDX documentation** into the `/docs/` hierarchy.
+
+This process runs as a **separate job**, triggered manually or as part of the “Documentation Sweep” workflow.  
+It is intended to produce **accurate, stable, traceable technical documentation** for internal and external readers.
+
+Documentation must *never* contradict:
+- `.cursorrules`
+- `.agents/folders.mdc` (source of truth for structure)
+- PRD
+- Architecture docs
+- Backend/Frontend/Integration MDCs
+
+---
+
+## 1. Purpose
+
+The goal of this protocol is to:
+
+1. Ensure documentation reflects the **actual state of the repository**.  
+2. Extract **features, behaviors, APIs, schemas, components, flows** from the existing codebase.  
+3. Write structured MDX documents under `docs/` organized by directory.  
+4. Bridge the gap between:
+   - PRD intent  
+   - Architecture design  
+   - Real implementation  
+5. Provide a reference for onboarding, audits, agent reliability, and maintainers.
+
+This job should be run **before major releases**, and **after significant refactors**.
+
+---
+
+## 2. Scope of the Documentation Sweep
+
+The documentation sweep MUST produce:
+
+### 2.1 Code-First Documentation
+A tree-by-tree extraction of:
+
+- Modules  
+- Classes  
+- Functions  
+- Components  
+- Routes  
+- API endpoints  
+- Services  
+- Schemas  
+- Utilities  
+- Jobs/workers  
+- Integration surfaces  
+- Errors & validation rules  
+
+### 2.2 Feature & Behavior Documentation
+For each directory:
+
+- What features does it implement?  
+- How do those features align with the PRD?  
+- What behaviors are guaranteed?  
+- What assumptions exist?  
+- What test coverage exists?  
+- What are the internal/external contracts?  
+
+### 2.3 Directory-Aligned MDX Files
+Each directory gets a corresponding MDX file under:

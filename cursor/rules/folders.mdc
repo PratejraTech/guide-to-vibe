@@ -1,0 +1,41 @@
+---
+module: repository
+owner: architecture-agent
+type: structure-spec
+version: 1.0.0
+authoritative: true
+---
+
+# folders.mdc — Canonical Repository Structure Specification
+
+This document defines the **only** permitted folder structure for `PROJECT_NAME`.  
+All agents and automation systems MUST treat this as the source of truth.
+
+---
+
+## 1. Top-Level Structure
+
+
+---
+
+## 2. `.agents/` Directory Contents
+agents/
+├── 01 - Draft Plan.md
+├── 02 - Folder Structure.md
+├── 03 - Product Requirements Document.md
+├── 04 - Architecture Document.md
+├── 05 - Backend Plan.md
+├── 06 - Frontend Plan.md
+└── 07 - Integration.md
+
+---
+## 3. `cursor/rules/` Directory Contents
+cursor/rules/
+├── backend-agent.mdc
+├── documentation.mdc
+├── folders.mdc
+├── frontend.mdc
+├── integration.mdc
+├── refactor.mdc
+└── testing.mdc
+

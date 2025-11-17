@@ -1,0 +1,60 @@
+---
+module: integration
+owner: integration-agent
+type: integration-spec
+structure: refer-to-folders.mdc
+version: 1.0.0
+related_documents:
+  - .cursorrules
+  - .agents/backend.mdc
+  - .agents/frontend.mdc
+  - .agents/folders.mdc
+  - docs/playbooks/07-integration.md
+  - docs/product/prd.md
+  - docs/architecture/system-architecture.md
+---
+
+# integration.mdc — Integration & E2E Build Specification
+
+This document governs all cross-cutting concerns and integration activities, referencing:
+
+- The Integration Playbook (`07-integration.md`)
+- The canonical structure (`folders.mdc`)
+- Backend + Frontend module specifications
+
+No integration-level decisions may modify structure independently.
+
+---
+
+## 1. Responsibilities
+
+- Frontend ↔ Backend API contract  
+- End-to-end signal propagation  
+- Agent network integration  
+- Error funnels and observability  
+- Cross-layer testing (E2E suite)
+
+---
+
+## 2. Integration Phases (From Playbook 07)
+
+1. **Phase 1 — Interface Definition**
+2. **Phase 2 — Contract Stabilisation**
+3. **Phase 3 — Full Integration**
+4. **Phase 4 — E2E Validation & Release Readiness**
+
+---
+
+## 3. Testing Requirements
+
+- E2E tests for all user-critical flows  
+- Contract tests for API interfaces  
+- Regression matrix for multi-phase builds  
+
+---
+
+## 4. Constraints
+
+- Must follow folders.mdc  
+- Cannot change backend or frontend without updating their MDCs and architecture notes  
+- Integration failures must be logged in documentation  

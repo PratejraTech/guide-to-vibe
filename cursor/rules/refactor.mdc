@@ -1,0 +1,284 @@
+---
+module: refactor
+owner: architecture-agent
+type: process-spec
+version: 1.0.0
+structure: refer-to-folders.mdc
+related_documents:
+  - .cursorrules
+  - .agents/folders.mdc
+  - .agents/AGENTS.md
+  - .agents/backend.mdc
+  - .agents/frontend.mdc
+  - .agents/integration.mdc
+  - .agents/refactor.mdc
+  - docs/playbooks/01-draft-plan.md
+  - docs/playbooks/03-prd.md
+  - docs/playbooks/04-architecture.md
+  - docs/playbooks/05-backend-plan.md
+  - docs/playbooks/06-frontend-plan.md
+  - docs/playbooks/07-integration.md
+  - docs/product/prd.md
+  - docs/architecture/system-architecture.md
+  - docs/architecture/backend-architecture.md
+  - docs/architecture/frontend-architecture.md
+---
+
+# refactor.mdc — Controlled Refactoring Protocol
+
+> This document defines **when** refactoring is allowed, **how** it must be performed,
+> and **what** must be updated to keep the system consistent with `.cursorrules` and
+> `.agents/folders.mdc`.
+
+Refactors are **planned, documented, and tested changes** to internal structure or design  
+that preserve *external behaviour* and *public contracts*.
+
+No refactor may override:
+
+- `.cursorrules`
+- `.agents/folders.mdc` as the authoritative folder spec
+- The playbook prompts (01–07) as canonical patterns and templates
+
+---
+
+## 1. When Refactoring Is Allowed
+
+A refactor is allowed (and encouraged) when at least one of these is true:
+
+1. **Code Smell / Design Debt**
+   - Duplication across modules or layers
+   - Overly long functions or components
+   - Leaky abstractions or cross-layer coupling
+
+2. **Scope Creep / Complexity**
+   - A module is taking responsibilities outside its defined `module` in MDC
+   - Logic is spread across backend/frontend/integration in an incoherent way
+
+3. **Performance or Reliability**
+   - Profiling indicates hotspots
+   - Error rates or instability trace back to poor structure
+
+4. **Architecture / PRD Drift**
+   - The implementation has drifted from:
+     - PRD (docs/product/prd.md)
+     - Architecture (docs/architecture/*.md)
+   - Refactor is needed to realign code with design, not to change product behaviour
+
+5. **Necessary Precondition for New Feature**
+   - Clean separation of concerns is required to add a new feature safely
+   - Refactor is strictly about internal structure, not feature scope changes
+
+> If the work changes **behaviour**, **APIs**, or **user-facing flows**, it is not “pure refactor” —  
+> it must go through PRD and Architecture updates as a feature/change, and the refactor protocol  
+> still applies to the *structural* aspects.
+
+---
+
+## 2. Hard Constraints
+
+Any refactor MUST comply with:
+
+1. **Folder Structure Is Untouchable Without folders.mdc**
+   - No top-level or structural changes may be made unless:
+     - `.agents/folders.mdc` is updated first to describe the target structure, **and**
+     - The change is coherently reflected there (and passes the consistency check script).
+   - If the refactor is internal to a module (e.g., reorganising backend/src files) but does not
+     change the folders.mdc-level structure, you MUST still check that you do not contradict it.
+
+2. **Refactor Is Not Feature Work**
+   - No new features are added.
+   - No user-visible behaviour changes are *intended*.
+   - If behaviour must change, that part is treated as a feature and must reference the PRD.
+
+3. **Refactor Must Be Reversible in Principle**
+   - The refactor should be decomposable into clear, minimal steps.
+   - Each step should be safe enough to roll back by Git if needed.
+
+4. **Tests Are Non-Negotiable**
+   - Existing tests must pass before starting.
+   - Tests must be updated if internals change (e.g. imports, modules paths).
+   - New tests should be added to cover newly exposed edge-cases or clearer invariants.
+
+5. **Documentation Must Be Updated in the Same Change**
+   - If the refactor impacts architecture, diagrams, or design rationale:
+     - Update the relevant `docs/architecture/*.md` files.
+   - If it affects domain understanding or constraints:
+     - Update `docs/product/prd.md` where applicable.
+   - Update the relevant module MDC (`backend.mdc`, `frontend.mdc`, `integration.mdc`) to reflect
+     the new internal arrangement.
+
+---
+
+## 3. Refactor Workflow (Phased)
+
+### Phase 0 — Proposal & Scoping (Required for non-trivial refactors)
+
+1. **Identify the Problem**
+   - Summarise the smell / debt / misalignment in a short note (e.g., in `docs/architecture/refactor-notes.md`)
+   - Explicitly state:
+     - Current pain: `"What is wrong?"`
+     - Target: `"What will be better after the refactor?"`
+
+2. **Check Alignment With Playbooks & MDCs**
+   - Read:
+     - `.cursorrules`
+     - `.agents/folders.mdc`
+     - `.agents/backend.mdc` / `.agents/frontend.mdc` / `.agents/integration.mdc` (as relevant)
+     - `docs/playbooks/04-architecture.md`
+     - `docs/playbooks/05-backend-plan.md` or `06-frontend-plan.md` or `07-integration.md`
+   - Confirm that the refactor:
+     - Keeps structure consistent with folders.mdc
+     - Keeps responsibilities aligned with the `module` definitions
+
+3. **Define the Refactor Scope**
+   - List the folders/files that will be touched.
+   - Note if any public interfaces (APIs, component props, event payloads) might *appear* to change.
+   - If public interfaces really need to change, that part is feature work, not pure refactor.
+
+---
+
+### Phase 1 — Safety Net: Tests & Coverage
+
+1. **Run Existing Test Suite**
+   - `backend/` tests, `frontend/` tests, and any integration/E2E tests.
+   - If tests are failing, you MUST fix failures before refactoring OR explicitly document why they are failing and how the refactor interacts with them.
+
+2. **Add or Tighten Key Tests**
+   - For the parts you intend to refactor, ensure tests exist that:
+     - Reflect current behaviour.
+     - Encode critical invariants and edge cases.
+   - These tests become your guardrails to ensure behaviour doesn’t change.
+
+---
+
+### Phase 2 — Localised Structural Changes
+
+Refactor work MUST be incremental:
+
+1. **Small, Local Steps**
+   - Prefer focused changes per commit:
+     - Rename/move module
+     - Extract function/service
+     - Split component
+   - Avoid “mega” commits that rewrite entire folders in one shot.
+
+2. **Respect Module Boundaries**
+   - Backend logic stays inside backend boundaries.
+   - Frontend logic stays in frontend boundaries.
+   - Integration logic that spans both is captured in `integration` and documented in `integration.mdc`.
+
+3. **Keep Imports & Contracts Clean**
+   - After reorganising, ensure imports are:
+     - Relative where appropriate.
+     - Pointing to “public” modules, not deep internals unless explicitly authorised.
+
+4. **Run Tests Frequently**
+   - After each non-trivial change, run the relevant test subset.
+   - Fix test breakage immediately or roll back the step.
+
+---
+
+### Phase 3 — Documentation & Metadata Sync
+
+1. **Update Architecture Docs**
+   - If the refactor affects:
+     - Component boundaries
+     - Data flow
+     - Integration topology
+   - Then update:
+     - `docs/architecture/system-architecture.md`
+     - and/or `backend-architecture.md`, `frontend-architecture.md`, `integration-architecture.md`
+
+2. **Update Module MDCs**
+   - For backend changes:
+     - Update `.agents/backend.mdc` where the phases/description mention the old structure.
+   - For frontend changes:
+     - Update `.agents/frontend.mdc`.
+   - For cross-cutting changes:
+     - Update `.agents/integration.mdc`.
+
+3. **Align With PRD If Needed**
+   - If the refactor clarifies domain concepts (e.g., splitting one entity into two conceptual layers without changing DB schema), you may:
+     - Add clarifying notes to `docs/product/prd.md`
+     - But do NOT rewrite feature descriptions as if the product itself changed.
+
+---
+
+### Phase 4 — Consistency Check & Handoff
+
+1. **Run Consistency Script**
+   - Run `python scripts/check_consistency.py`
+   - The script must pass before merging.
+   - If it fails, resolve:
+     - Missing files
+     - Structure inconsistencies
+     - MDC misconfiguration
+
+2. **Run Full Test Suite**
+   - Backend + Frontend + Integration/E2E where available.
+   - All tests must pass; refactors do not ship with “known broken” tests.
+
+3. **Prepare Handoff Notes**
+   - In commit (or a short markdown log file like `docs/architecture/refactor-log.md`), record:
+     - What was refactored
+     - Why it was safe
+     - Any known follow-ups
+
+---
+
+## 4. Special Cases
+
+### 4.1 Structural Refactor That Touches folders.mdc
+
+If the refactor **changes the actual folder layout**, you MUST:
+
+1. Update `.agents/folders.mdc` FIRST to describe the intended new structure.
+2. Ensure `.cursorrules` does not conflict with the new arrangement.
+3. Adjust `.agents/backend.mdc`, `.agents/frontend.mdc`, `.agents/integration.mdc` accordingly.
+4. Apply the physical folder/file changes to match the new spec.
+5. Run `scripts/check_consistency.py` and fix all errors/warnings.
+6. Update architecture docs.
+
+If any of these steps cannot be completed in one coherent branch, do NOT proceed with the structural refactor.
+
+---
+
+### 4.2 Behavioural Changes Discovered Mid-Refactor
+
+If, during refactor:
+
+- You realise behaviour must change to be correct, or
+- You want to change user-facing flows
+
+Then:
+
+1. **Stop labelling the work as “pure refactor”.**
+2. Create or update PRD sections to capture the behavioural change.
+3. Treat the change as a feature or bugfix, with the refactor as supporting work.
+4. Maintain the refactor protocol for the structural parts.
+
+---
+
+## 5. Quick Checklist for Any Refactor
+
+Before starting:
+
+- [ ] Have you read `.cursorrules` and `.agents/folders.mdc`?
+- [ ] Have you checked the relevant module MDCs (backend/frontend/integration)?
+- [ ] Is the refactor clearly scoped and distinct from feature work?
+
+During refactor:
+
+- [ ] Are you keeping changes small and incremental?
+- [ ] Are tests passing after each major step?
+- [ ] Are module boundaries and contracts respected?
+
+Before merging:
+
+- [ ] Does the implementation still match the PRD and Architecture at the behavioural level?
+- [ ] Are architecture and module MDCs updated for any structural changes?
+- [ ] Does `scripts/check_consistency.py` pass?
+- [ ] Does the full test suite (backend/frontend/integration) pass?
+- [ ] Is there a short written summary of the refactor (for future agents/humans)?
+
+If any answer is “no”, the refactor is **not complete** and MUST NOT be merged.

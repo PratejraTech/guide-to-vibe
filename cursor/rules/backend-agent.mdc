@@ -1,0 +1,81 @@
+---
+module: backend
+owner: backend-agent
+language: python
+framework: fastapi
+type: module-spec
+structure: refer-to-folders.mdc
+version: 1.0.0
+related_documents:
+  - .cursorrules
+  - .agents/folders.mdc
+  - .agents/frontend.mdc
+  - .agents/integration.mdc
+  - docs/playbooks/05-backend-plan.md
+  - docs/playbooks/04-architecture.md
+  - docs/product/prd.md
+---
+
+# backend.mdc — Backend Build Specification
+
+Backend development MUST follow:
+
+1. **The folder structure defined in `.agents/folders.mdc`**  
+2. **The Backend Plan Playbook (`05-backend-plan.md`)**  
+3. **The global rules enforced by `.cursorrules`**
+
+No backend build or refactor may redefine structure; always reference folders.mdc.
+
+---
+
+## 1. Responsibilities
+
+- Domain models and schemas  
+- Service logic and DB access  
+- API routes and validation  
+- Observability (logging, tracing, metrics)  
+- Integration surfaces for frontend + external agents  
+- Full test suite (unit, integration, scenario)
+
+---
+
+## 2. Backend Phases (Derived From Playbook 05)
+
+### **Phase 1 — Scaffold**
+- Ensure backend/ exists exactly as defined in folders.mdc  
+- Create initial FastAPI app entrypoint  
+- Implement healthcheck endpoint  
+- Set up testing harness
+
+### **Phase 2 — Data Model & Core Domain**
+- Define base domain entities → PRD → Architecture alignment  
+- Implement repository/infrastructure adapters  
+- Update architecture.md accordingly  
+
+### **Phase 3 — Services, API & Validation**
+- Implement routes, services, and validation  
+- Add middleware (auth/tracing)  
+- Update backend.mdc status and docs
+
+### **Phase 4 — Integrations & Observability**
+- Integrate external services, queues, agent network signals  
+- Add tracing, metrics, error analytics  
+- Write integration tests  
+
+---
+
+## 3. Constraints
+
+- Must conform exactly to folders.mdc  
+- Must not introduce new root-level folders  
+- Must document every structural or model change in PRD + Architecture
+
+---
+
+## 4. Test Requirements
+
+Each phase MUST include:
+
+- Unit tests for new logic  
+- Integration tests for API surfaces  
+- Failure-mode tests for validation  

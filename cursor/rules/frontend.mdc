@@ -1,0 +1,72 @@
+---
+module: frontend
+owner: frontend-agent
+language: typescript
+framework: nextjs
+type: module-spec
+structure: refer-to-folders.mdc
+version: 1.0.0
+related_documents:
+  - .cursorrules
+  - .agents/folders.mdc
+  - .agents/backend.mdc
+  - .agents/integration.mdc
+  - docs/playbooks/06-frontend-plan.md
+  - docs/product/prd.md
+---
+
+# frontend.mdc — Frontend Build Specification
+
+Frontend work must reference:
+- The canonical directory structure defined in `.agents/folders.mdc`
+- The Frontend Plan Playbook (`06-frontend-plan.md`)
+- Global rules in `.cursorrules`
+
+No exceptions.
+
+---
+
+## 1. Responsibilities
+
+- UI/UX implementation  
+- View-state + routing  
+- Client-side business logic  
+- API integration with backend  
+- Component-level test coverage  
+- Fidelity to design system + PRD
+
+---
+
+## 2. Frontend Phases (From Playbook 06)
+
+### **Phase 1 — Scaffold**
+- Initialise NextJS app aligned with folder structure  
+- Create base layout system  
+- Set up design tokens + global theme  
+- Configure testing (Vitest/Jest + React Testing Library + Playwright)
+
+### **Phase 2 — Core Views & State**
+- Implement core pages  
+- Establish API client layer  
+- Create domain-level components  
+- Match PRD acceptance criteria
+
+### **Phase 3 — Feature Implementation**
+- Build feature modules  
+- Implement complex interactions  
+- Add error/boundary components  
+- Expand tests
+
+### **Phase 4 — Integration & UX Polish**
+- Integrate backend endpoints  
+- Connect observability hooks  
+- Final visual polish and animation rules  
+- Full E2E tests
+
+---
+
+## 3. Constraints
+
+- No structural duplication; folder tree is inherited from folders.mdc  
+- Every view must map to a PRD feature section  
+- Component library changes require update to architecture.md
