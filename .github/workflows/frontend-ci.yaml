@@ -1,0 +1,65 @@
+name: Frontend CI
+
+on:
+  push:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+  pull_request:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-ci:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            bun install
+          else
+            echo "No package.json found; skipping frontend CI."
+            exit 1
+          fi
+
+      - name: Lint (bun run lint if defined)
+        run: |
+          if bun run | grep -q "lint"; then
+            bun run lint
+          else
+            echo "No lint script defined; skipping lint."
+          fi
+
+      - name: Run tests (bun run test if defined)
+        run: |
+          if bun run | grep -q "test"; then
+            bun run test
+          else
+            echo "No test script defined; skipping tests."
+            exit 0
+          fi
+
+      - name: Build (bun run build if defined)
+        run: |
+          if bun run | grep -q "build"; then
+            bun run build
+          else
+            echo "No build script defined; skipping build."
+          fi

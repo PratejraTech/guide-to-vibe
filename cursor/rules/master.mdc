@@ -1,0 +1,124 @@
+---
+alwaysApply: true
+---
+
+- Insert `last updated: <ISO timestamp>` at the top of `PRD.md`.  
+- Apply *only* non-destructive updates.  
+- Preserve original document intent.  
+- Add a “Phase X Update” section summarising structural changes.
+
+4. Agents must not update PRD.md outside the end of a Phase.
+
+---
+
+## 3. DOCUMENTATION & TRACEABILITY RULES
+- Every Phase completion requires:
+- Updated PRD.md  
+- Updated Architecture if impacted  
+- Notes stored in `.cursor/agent_notes`  
+- State files updated only where allowed  
+- Each document should clearly identify which Phase last altered it.
+
+- Agents must resolve inconsistencies between:
+- Folder structure  
+- PRD  
+- Architecture  
+- Data models  
+- Test plans  
+
+In cases of conflict, follow this order of truth:
+1. **Folder structure**
+2. **Architecture**
+3. **PRD**
+4. **Implementation**
+
+---
+
+## 4. allowed & prohibited ACTIONS
+
+### Allowed
+- Refactoring within existing directories  
+- Adding tests under the appropriate test directory  
+- Updating schemas, models, or API contracts non-destructively  
+- Creating one agent_notes file per completed Phase  
+- Writing new `.mdc` files where documented  
+
+### Prohibited
+- Changing root folder structure  
+- Creating new top-level directories  
+- Modifying `.cursorrules` or `master.mdc`  
+- Applying destructive refactors  
+- Updating PRD.md mid-Phase  
+
+---
+
+## 5. AGENT BEHAVIOUR GUIDELINES
+Agents must:
+
+### 5.1 Stay Inside Context
+Only use:
+- project files  
+- prompts  
+- `.cursor/*.mdc`  
+- `.cursor/agent_notes`  
+
+Do not fetch outside context unless explicitly instructed.
+
+### 5.2 Maintain Coherence
+Ensure every output is:
+- deterministic  
+- reproducible  
+- aligned with `.cursorrules` and AGENTS.md  
+- consistent with Folder Structure  
+
+### 5.3 Enforce Testing Discipline
+Each new component requires:
+- matching unit test  
+- integration test where appropriate  
+
+Agents should refuse to proceed if tests are missing.
+
+---
+
+## 6. CHANGE MANAGEMENT
+When a change arises mid-Phase that affects architecture or PRD:
+- Record it in `.cursor/agent_notes/phase_name.md`
+- Do **not** update PRD during the Phase
+- Only apply changes during the Phase-completion update cycle
+
+If change is outside the current Phase scope:
+- Queue it in `agent_notes/todo.md`  
+- Mark `requires future phase alignment: true`
+
+---
+
+## 7. EXECUTION FLOW (Authoritative)
+1. Read `.cursorrules`  
+2. Read `master.mdc`  
+3. Read `AGENTS.md`  
+4. Read Phase document (PRD + Architecture)  
+5. Perform work **within the current Phase scope**  
+6. Validate against folder structure  
+7. Write agent_notes  
+8. Update PRD at Phase end  
+9. Await next Phase instruction  
+
+This order is strict.
+
+---
+
+## 8. FAILURE & RECOVERY
+If an agent becomes uncertain:
+- Stop
+- Write reason in `.cursor/agent_notes/uncertainty.md`
+- Suggest remediation
+- Do not hallucinate missing information
+
+If a document appears contradictory:
+- Defer to `.cursorrules` → master.mdc → AGENTS.md order of authority  
+
+---
+
+## 9. END OF MASTER CONTROL
+This file may only be modified manually by the repository maintainer.
+

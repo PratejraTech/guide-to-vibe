@@ -1,0 +1,297 @@
+---
+module: data-model-governance
+owner: data-model-agent
+priority: highest
+alwaysApply: true
+description: |
+  Authoritative rules for designing, evolving, and validating data models
+  across backend and frontend in a language- and framework-agnostic way.
+  All agents MUST respect these constraints before touching any models.
+---
+
+# DATA MODEL CONTROL — GLOBAL RULESET
+
+This file defines **mandatory rules** for creating, updating, and using data
+models anywhere in this codebase (backend, frontend, shared libraries).
+
+It must be read and applied **together with**:
+
+1. `.cursorrules` (execution & folder constraints)
+2. `master.mdc` (global behavioural rules)
+3. `AGENTS.md` (role and responsibility definitions)
+4. `PRD.md` and Architecture documents (domain intent and contracts)
+
+In case of conflict, follow the authority order defined in `master.mdc`.
+
+---
+
+## 1. SCOPE & PRINCIPLES
+
+The term **data model** includes (but is not limited to):
+
+- Backend:
+  - ORM entities (SQL/NoSQL schemas)
+  - validation schemas (e.g., Pydantic, Zod, JSON Schema, Joi)
+  - domain models (DDD entities, value objects)
+- Frontend:
+  - TypeScript/Flow types and interfaces
+  - client-side schemas and validators
+  - API request/response contracts
+- Shared:
+  - shared DTOs
+  - generated API types
+  - event payload schemas
+
+Core principles:
+
+1. **Single Source of Truth** – For each domain concept, one canonical model or schema definition must exist.
+2. **Explicit Contracts** – API and event boundaries must be defined via explicit schemas or types, never implicit.
+3. **Non-Destructive Evolution** – Changes must preserve existing data/clients unless there is an explicit, documented migration plan.
+4. **Traceability** – Every model change must be traceable back to PRD + Architecture and, where relevant, to a Phase and note in `.cursor/agent_notes`.
+
+---
+
+## 2. DIRECTORY CONVENTIONS (LANGUAGE / FRAMEWORK AGNOSTIC)
+
+Agents must adhere to the project’s folder structure documents (e.g. `folders.mdc`).
+Unless otherwise specified, assume the following **logical** structure:
+
+- Backend models:
+  - `backend/**/models/`      # domain models, ORM entities
+  - `backend/**/schemas/`     # API-facing schemas, validators
+- Frontend models:
+  - `frontend/**/models/`     # domain view models
+  - `frontend/**/types/`      # TypeScript types/interfaces
+  - `frontend/**/schemas/`    # client-side validators
+- Shared models (if present):
+  - `shared/models/`
+  - `shared/schemas/`
+  - `shared/types/`
+
+Agents may not create new top-level directories for models unless explicitly allowed by `.cursorrules` or architecture docs.
+
+---
+
+## 3. BACKEND DATA MODEL RULES
+
+### 3.1 Canonical Domain Models
+
+- Each domain entity (e.g., User, Project, Run, Event) must have:
+  - A **canonical domain model** in backend `models/` (or equivalent).
+  - A corresponding **persistence representation** (ORM/DB schema) if using a database.
+  - Optional: separate **read models** (projections) for query-optimised views.
+
+Rules:
+
+- Domain properties must be:
+  - **typed** (even in dynamically typed languages, enforce runtime validators).
+  - **named consistently** across domain, DB, and API.
+- Avoid leaking persistence concerns (e.g. table names, IDs) into domain logic wherever possible.
+
+### 3.2 Validation & Invariants
+
+- All inputs to the system (API body, query params, headers, events) must be validated against explicit schemas.
+- Invariants (e.g., “end_time must be after start_time”) must be encoded in:
+  - validators, or
+  - domain methods that fail loudly on invalid states.
+
+Never silently coerce invalid data without logging and/or returning an explicit error.
+
+### 3.3 Migrations & Non-Destructive Change
+
+When changing backend models:
+
+**Allowed (non-destructive):**
+- Adding new optional fields
+- Adding new entities/tables
+- Adding derived fields with default values
+- Marking fields as deprecated (without removing them)
+
+**Prohibited without explicit migration plan:**
+- Renaming fields
+- Changing field types in incompatible ways
+- Removing fields or entities
+- Reinterpreting meaning of existing fields (semantic change)
+
+If a destructive change is absolutely required:
+
+1. Document it in `.cursor/agent_notes/data_model-phase-<number>.md`:
+   - old shape
+   - new shape
+   - migration steps
+   - impact on APIs and frontend
+2. Update `PRD.md` and Architecture at Phase end, **not mid-Phase** (see `master.mdc`).
+3. Ensure one of:
+   - a migration script/plan exists, or
+   - a compatibility layer that supports both old and new shapes for a transition period.
+
+---
+
+## 4. FRONTEND DATA MODEL RULES
+
+Frontend models must **mirror backend contracts**, not reinterpret them arbitrarily.
+
+### 4.1 API-Aligned Types
+
+- For each backend API, define:
+  - Request types/interfaces
+  - Response types/interfaces
+- Prefer:
+  - generating types from backend schemas, **or**
+  - maintaining a single shared schema that both backend and frontend use.
+
+Manual duplication of types is allowed only if:
+- It is small,
+- It remains exactly aligned with backend,
+- And is documented in `.cursor/agent_notes` when updated.
+
+### 4.2 View Models vs API Models
+
+Frontend must distinguish between:
+
+- **API models** – exactly match backend contract (serialized shape).
+- **View models** – UI-specific projections (computed fields, derived state).
+
+Rules:
+
+- Do not mutate raw API models in-place for UI; instead:
+  - transform API models into view models.
+- Do not leak view-only fields back into API requests.
+
+---
+
+## 5. SHARED SCHEMAS & CROSS-CUTTING MODELS
+
+When shared libraries are used (`shared/`):
+
+- Shared models must be platform-neutral:
+  - Avoid frontend-only or backend-only concerns.
+- Shared schemas/types must be versioned and tagged:
+  - e.g. `v1`, `v2` folders or semantic version annotations in comments.
+
+If generated code is used (OpenAPI, protobuf, GraphQL, etc.):
+
+- Generated code lives in dedicated folders (`generated/`).
+- Agents **must not manually edit generated files**.
+- Changes to source definitions (OpenAPI schema, proto files, etc.) must be treated as model changes and follow the same non-destructive rules.
+
+---
+
+## 6. VERSIONING, COMPATIBILITY & PHASES
+
+Every significant data model change must:
+
+1. Be tied to a **Phase** (as defined in `PRD.md` / Architecture).
+2. Be documented at Phase end in:
+   - `PRD.md` (“Phase X Data Model Update” section + `last updated: <ISO timestamp>`).
+3. Be summarised in:
+   - `.cursor/agent_notes/data_model-phase-<number>.md`
+
+For breaking changes, consider:
+
+- Versioned endpoints or event versions (e.g., `/v1/events`, `/v2/events`).
+- Dual-read/dual-write strategies when needed.
+
+Agents must avoid introducing hard breaking changes mid-Phase.
+
+---
+
+## 7. DATA INTEGRITY & VALIDATION STRATEGY
+
+Agents must ensure validation at three key layers:
+
+1. **Edge / Input Layer**
+   - API gateways, controllers, or route handlers validate incoming data.
+   - Reject invalid requests with explicit, structured errors.
+
+2. **Domain Layer**
+   - Domain invariants must be enforced even if inputs have passed basic validation.
+
+3. **Persistence Layer**
+   - DB-level constraints (types, not-null, unique indexes, foreign keys) protect against invalid persisted state.
+
+Validation should be:
+
+- **Fail-fast** – detect issues early in the stack.
+- **Consistent** – same rules enforced across backend and frontend (where relevant).
+- **Observable** – invalid data attempts should be logged with enough context to debug.
+
+---
+
+## 8. TESTING REQUIREMENTS FOR DATA MODELS
+
+Every non-trivial data model must have **tests**:
+
+### 8.1 Backend
+
+- Schema/model tests:
+  - ensure required fields are enforced.
+  - ensure defaults and transformations behave as expected.
+- Round-trip tests:
+  - model → serialized form → model (no loss of information).
+- Migration tests (where applicable):
+  - old shape → migration → new shape.
+
+### 8.2 Frontend
+
+- Type/contract tests (where feasible):
+  - ensure that changes to API types are surfaced clearly.
+- Serialization tests:
+  - user actions → payload → matches backend contract.
+- View model tests:
+  - ensure mapping from API → view model remains correct.
+
+Agents must not introduce new models without adding appropriate tests or explicitly noting missing tests (as technical debt) in `.cursor/agent_notes`.
+
+---
+
+## 9. CHANGE MANAGEMENT RULES (PROTECTIVE BEHAVIOUR)
+
+When touching a model of any kind, agents must:
+
+1. **Read:**
+   - `PRD.md` (for domain meaning)
+   - Architecture docs (for inter-service / inter-module relationships)
+   - Existing model and associated tests
+2. **Check dependencies:**
+   - API endpoints
+   - Event producers/consumers
+   - Frontend usage (types, components)
+3. **Plan changes:**
+   - Identify whether change is non-destructive or destructive.
+   - If destructive, follow the migration/Phase rules above.
+4. **Update documentation:**
+   - At Phase end, sync changes into PRD and Architecture.
+5. **Update tests:**
+   - Ensure tests reflect new shape and semantics.
+
+Agents must **refuse** to perform destructive changes without a documented plan and explicit link to Phase and PRD updates.
+
+---
+
+## 10. PROHIBITED ACTIONS
+
+Agents **must not**:
+
+- Rename or remove fields in existing models without:
+  - migration plan
+  - PRD + Architecture updates at Phase end
+- Change the meaning of a field (semantic change) without documenting it.
+- Introduce untyped or loosely typed “catch-all” fields (e.g., `any`, `dict` without structure) unless:
+  - clearly documented as unstructured payloads,
+  - and constrained to a very specific boundary.
+- Create separate, conflicting definitions of the same domain concept across backend and frontend.
+
+Whenever in doubt, agents must stop and:
+
+- Write an explanation in `.cursor/agent_notes/data_model-uncertainty.md`.
+- Propose a safe plan rather than guessing.
+
+---
+
+## 11. END OF DATA MODEL CONTROL
+
+This file defines the **global contract** for all data model work.
+
+Only the repository maintainer may modify `data_model.mdc`.  
+All agents must apply this document **throughout the entire development process** when designing, updating, or using data models.

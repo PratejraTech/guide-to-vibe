@@ -1,0 +1,53 @@
+{
+    "arch_id": "uuid",
+    "concept_id": "uuid",
+    "meta": {
+      "version": 1,
+      "owner": "string",
+      "created_at": "ISO8601"
+    },
+    "context": {
+      "domain": "family_memories_app",
+      "deployment_region": "ap-southeast-2",
+      "constraints": ["must run on AWS", "must support agent observability"]
+    },
+    "services": [
+      {
+        "name": "api-gateway",
+        "type": "http_service",
+        "language": "python",
+        "framework": "fastapi",
+        "responsibilities": ["route client requests", "auth"],
+        "inputs": ["http"],
+        "outputs": ["service:timeline", "service:auth"],
+        "dependencies": [
+          "service:auth",
+          "db:primary",
+          "queue:events"
+        ]
+      }
+    ],
+    "data_stores": [
+      {
+        "id": "db:primary",
+        "engine": "postgres",
+        "schemas": ["users", "memories", "relationships"],
+        "constraints": ["pitr_enabled", "encrypted_at_rest"]
+      }
+    ],
+    "queues": [
+      {
+        "id": "queue:events",
+        "engine": "sqs",
+        "usage": ["async processing"]
+      }
+    ],
+    "external_integrations": [
+      {
+        "id": "s3-media",
+        "provider": "aws_s3",
+        "purpose": "media storage"
+      }
+    ]
+  }
+  

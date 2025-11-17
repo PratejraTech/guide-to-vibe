@@ -1,0 +1,52 @@
+{
+    "prd_id": "uuid",
+    "concept_id": "uuid",
+    "meta": {
+      "version": 1,
+      "owner": "string",
+      "created_at": "ISO8601",
+      "updated_at": "ISO8601"
+    },
+    "product": {
+      "name": "string",
+      "problem_statement": "string",
+      "goals": ["string"],
+      "non_goals": ["string"]
+    },
+    "users": [
+      {
+        "persona_id": "string",
+        "name": "string",
+        "description": "string",
+        "needs": ["string"]
+      }
+    ],
+    "requirements": {
+      "functional": [
+        {
+          "id": "FR-001",
+          "description": "string",
+          "priority": "must|should|could",
+          "acceptance_criteria": ["string"],
+          "dependencies": ["FR-002"]
+        }
+      ],
+      "non_functional": [
+        {
+          "id": "NFR-001",
+          "category": "performance|security|reliability",
+          "description": "string",
+          "metric": "p95_latency_ms < 300"
+        }
+      ]
+    },
+    "milestones": [
+      {
+        "id": "M1",
+        "name": "MVP",
+        "target_date": "ISO8601",
+        "scope_fr_ids": ["FR-001", "FR-002"]
+      }
+    ]
+  }
+  
